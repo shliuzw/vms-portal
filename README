@@ -1,0 +1,44 @@
+Hello vms-plat
+
+admin/password
+sa/password
+
+APP怎么不用密码登录:
+    web使用的是cookie（由浏览器自动维护的），APP怎么登陆呢？
+    由于APP本地不保存密码，那么也参考web，使用类似cookie的东西，我们叫他token吧，那问题就解决了，APP本地保存token.
+    为了安全性，定期更新token，那再来看看会话的保持。
+
+会话（session）（保持状态）
+    如果用户登录了，怎么保持登录状态呢?
+    web有cookie和session配合解决这个问题，下面先简单说一下我对这两个东西的理解，因为APP会话就是参考这个原理设计的。
+    cookie：是由浏览器维护的，每次请求浏览器都会把cookie放在header里面（如果有的话），
+        也可以看做js的可以访问本地存储数据的位置之一（另一个就是local storage）
+    session：由于http是无状态的，但是有时候服务器需要把这次请求的数据保存下来留给下一次请求使用，即需要维护连续请求的状态，
+        这个时候服务器就借助cookie，当浏览器发送请求到服务器的时候，服务器会生成一个唯一的值，写到cookie中返回给浏览器，同时生成一个session对象，
+        这样session和cookie值就有了一一对应关系了，浏览下一次访问的时候就会带着这个cookie值，这个时候服务器就会获得cookie的值，
+        然后在自己的缓存里面查找是否存在和该cookie关联的session。
+    因为cookie和session的配合，shiro可以本身很好的支持web的登录和会话保持，对于APP来说也可以借鉴cookie和session的这种实现方式，
+    唯一存在的问题，就是web的cookie是由浏览器维护的，自动将cookie放在header里面，
+    那我们APP只要把服务器返回的cookie放在header里面，每次访问服务器的时候带上就可以了。
+免密码登录
+    解决了登录和会话保持的问题，还剩一个免密码登陆：
+    web：因为一般网页主需要记住7天密码（或者稍微更长）的功能就可以了，可以使用cookie实现，
+    而且shiro也提供了记住密码的功能，在服务器端session不需要保存过长时间
+
+    APP：因为APP免密码登录时间需要较长（在用户不主动退出的时候，应该一直保持登录状态），这样子在服务器端就得把session保存很长时间，
+    给服务器内存和性能上造成较大的挑战，存在的矛盾是：APP需要较长时间的免密码登录，而服务器不能保存过长时间的session，解决办法：
+    1）APP第一次登录，使用用户名和密码，如果登录成功，将cookie保存在APP本地（比如sharepreference），后台将cookie值保存到user表里面
+    2）APP访问服务器，APP将cookie添加在heade里面，服务器session依然存在，可以正常访问
+    3）APP访问服务器，APP将cookie添加在heade里面，服务器session过期，访问失败，由APP自动带着保存在本地的cookie去服务器登录，
+    服务器可以根据cookie和用户名进行登录，这样服务器又有session，会生成新的cookie返回给APP，APP更新本地cookie，又可以正常访问
+    4）用户手动退出APP，删除APP本次存储的cookie，下次登录使用用户名和密码登录
+
+    这种方法存在的问题：
+    cookie保存在APP本地，安全性较低，可以通过加密cookie增加安全性
+    每次服务器session失效之后，得由APP再次发起登录请求（虽然用户是不知道的），但是这样本身就会增加访问次数，好在请求数量并不是很大，
+    不过这种方式会使cookie经常更新，反而增加了安全性
+
+    这里给出另外一种实现方式：
+    实现自己的SessionDao，将session保存在数据库，这样子的好处是，session不会大量堆积在内存中，就不需要考虑session的过期时间了，
+    对于APP这种需要长期保存session的情况来说，就可以无限期的保存session了，也就不用APP在每次session过期之后重新发送登录请求了。实现方式如下：
+

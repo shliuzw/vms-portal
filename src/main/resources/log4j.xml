@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+	<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[vms-portal][%d{yyyy-MM-dd HH:mm:ss SSS}] %p [%t] %c{1}.%M(%L) | %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="ASYNC_CONSOLE_LOG" class="org.apache.log4j.AsyncAppender">
+		<param name="BufferSize" value="4096" />
+		<param name="LocationInfo" value="true" />
+		<appender-ref ref="CONSOLE" />
+	</appender>
+
+	<appender name="LOG_FILE" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="/logs/search/search.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<param name="Append" value="true" />
+		<param name="encoding" value="UTF-8" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[vms-portal][%d{yyyy-MM-dd HH:mm:ss SSS}] %p [%t] %c{1}.%M(%L) | %m%n" />
+		</layout>
+	</appender>
+	
+	<logger name="net.sf.ehcache">
+		<level value="ERROR" />
+	</logger>
+
+	<logger name="org.springframework.security">
+		<level value="ERROR" />
+	</logger>
+
+	<logger name="org.apache">
+		<level value="WARN" />
+	</logger>
+
+	<logger name="org.dbunit">
+		<level value="WARN" />
+	</logger>
+
+	<logger name="org.springframework">
+		<level value="WARN" />
+	</logger>
+
+	<logger name="com.jy">
+		<level value="debug" />
+	</logger>
+
+	<root>
+		<level value="debug" />
+		<appender-ref ref="ASYNC_CONSOLE_LOG" />
+		<appender-ref ref="LOG_FILE"/>
+	</root>
+
+</log4j:configuration>

@@ -185,7 +185,7 @@ public class BaseController<T> {
 					Element elePlay = (Element)iterPlay.next();
 					Node codeRate = elePlay.selectSingleNode("CodeRate");
 					Node langPaly = elePlay.selectSingleNode("Language");
-					Node playUrl = elePlay.selectSingleNode("playUrl");
+					Node playUrl = elePlay.selectSingleNode("PlayUrl");
 					play.setCodeRate(codeRate.getText());
 					play.setLanguage(langPaly.getText());
 					play.setPlayUrl(playUrl.getText());

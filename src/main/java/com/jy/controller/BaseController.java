@@ -141,7 +141,7 @@ public class BaseController<T> {
 			Node director = root.selectSingleNode("/Content/Director");
 			Node totalSum = root.selectSingleNode("/Content/TotalSum");
 			Node latestNum = root.selectSingleNode("/Content/LatestNum");
-			Node contType = root.selectSingleNode("/Content/ContType");
+			Node contType = root.selectSingleNode("/Content/ConType");
 			Node contDesc = root.selectSingleNode("/Content/ConDesc");
 			Node provider = root.selectSingleNode("/Content/Provider/Name");
 			content.setActor(actor.getText());

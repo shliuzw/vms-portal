@@ -11,6 +11,7 @@ import com.jy.common.utils.base.UuidUtil;
 import com.jy.common.utils.security.CipherUtil;
 import com.jy.entity.system.Account;
 import com.jy.interceptor.shiro.UsernameSmsToken;
+import com.jy.service.redis.RedisService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -20,8 +21,10 @@ import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
+import org.apache.shiro.session.mgt.DefaultSessionKey;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -44,6 +47,8 @@ public class LoginController extends BaseController<Object>{
 	private AccountService accountService;
 	@Autowired
 	private LoginLogService loginLogService;
+	@Autowired
+	private RedisService accountRedisService;
 
 	/**
 	 * 请求登录，验证用户
@@ -123,16 +128,16 @@ public class LoginController extends BaseController<Object>{
 		PageData pd = this.getPageData();
 		String errInfo = "";
 		String loginType = pd.getString("loginType");
-		String keyData[] = pd.getString("keyData").split(",jy,");
-		String username = keyData[0];
-		String code = keyData[1];
+
 		//shiro管理的session
 		Subject currentUser = SecurityUtils.getSubject();
 		Session session = currentUser.getSession();
 
 		if (StringUtils.isNotEmpty(loginType) && loginType.equalsIgnoreCase("1")){ // 短信验证码登录
+			String keyData[] = pd.getString("keyData").split(",jy,");
+			String username = keyData[0];
+			String code = keyData[1];
 			if(null != keyData && keyData.length == 2) {
-
 				// shiro加入身份验证
 				UsernameSmsToken token = new UsernameSmsToken(username, code);
 				token.setRememberMe(true);
@@ -142,9 +147,9 @@ public class LoginController extends BaseController<Object>{
 					}
 					//记录登录日志
 					String accountId=AccountShiroUtil.getCurrentUser().getAccountId();
-					String loginIP=IPUtil.getIpAddr(getRequest());//获取用户登录IP
-					LoginLog loginLog=new LoginLog(accountId,loginIP);
-					loginLogService.saveLoginLog(loginLog);
+//					String loginIP=IPUtil.getIpAddr(getRequest());//获取用户登录IP
+//					LoginLog loginLog=new LoginLog(accountId,loginIP);
+//					loginLogService.saveLoginLog(loginLog);
 				} catch (UnknownAccountException uae) {
 					errInfo = "usererror";// 用户名或短信码有误
 				} catch (IncorrectCredentialsException ice) {
@@ -161,20 +166,43 @@ public class LoginController extends BaseController<Object>{
 					token.clear();
 				}
 			}
-		}else if (StringUtils.isNotEmpty(loginType) && loginType.equalsIgnoreCase("2")){ //用户名密码登录
-			/**
-			 * @todo
-			 */
+			String tokenId = "";
+			if(StringUtils.isEmpty(errInfo)){
+				errInfo = "success";//验证成功
+				session.removeAttribute(Const.SESSION_SECURITY_CODE);//移除SESSION的短信码
+				tokenId = (String)session.getId();
+			}
+			map.put("token",tokenId);
+			map.put("result", errInfo);
+			return map;
+		}else if (StringUtils.isNotEmpty(loginType) && loginType.equalsIgnoreCase("2")) { //token登录
+			String loginToken = pd.getString("token");
+//			Account ret = accountService.findFormatByToken(loginToken);
+			Account ret = (Account)accountRedisService.getMap("token",loginToken);
+			if (ret != null){
+				this.setSession(Const.SESSION_USER, ret);
+				errInfo = "success";//验证成功
+				map.put("result", errInfo);
+				return map;
+			}else {
+				Account ret2 = accountService.findFormatByToken(loginToken);
+				if (ret2 == null){
+					errInfo = "token is error.";//验证失败
+					map.put("result", errInfo);
+					return map;
+				}else {
+					accountRedisService.setMap("token",loginToken,ret2);
+					this.setSession(Const.SESSION_USER, ret2);
+					errInfo = "success";//验证成功
+					map.put("result", errInfo);
+					return map;
+				}
+			}
+		}else if (StringUtils.isNotEmpty(loginType) && loginType.equalsIgnoreCase("3")){ // 用户名密码登录
+
 		}else{
 			errInfo = "error";	//缺少参数
 		}
-		String tokenId = "";
-		if(StringUtils.isEmpty(errInfo)){
-			errInfo = "success";					//验证成功
-			session.removeAttribute(Const.SESSION_SECURITY_CODE);//移除SESSION的短信码
-			tokenId = (String)session.getId();
-		}
-		map.put("token",tokenId);
 		map.put("result", errInfo);
 		return map;
 	}
@@ -184,13 +212,33 @@ public class LoginController extends BaseController<Object>{
      * 帐号注销
      * @return
      */
-    @RequestMapping("/system_logout")
-    public String logout(HttpServletRequest request,HttpSession session) {
-        Subject currentUser = SecurityUtils.getSubject();
-        currentUser.logout();
-        session = request.getSession(true);
-        session.removeAttribute(Const.SESSION_USER);
-        return "redirect:loginIndex.html";
+	@RequestMapping(value="/logout" ,produces="application/json;charset=UTF-8")
+	@ResponseBody
+    public Map<String, Object> logout(HttpServletRequest request,HttpSession session) {
+		Map<String,Object> map = new HashMap<String,Object>();
+		String errInfo = "";
+		try {
+			PageData pd = this.getPageData();
+			String token = pd.getString("token");
+			accountRedisService.delMapField("token",token);
+			Account ret2 = accountService.findFormatByToken(token);
+			if (ret2 !=null) {
+				accountRedisService.delMapField("username", ret2.getLoginName());
+				ret2.setUpdateTime(new Date());
+				accountService.sysResetToken(ret2);
+			}
+			Subject currentUser = SecurityUtils.getSubject();
+			currentUser.logout();
+			session = request.getSession(true);
+			session.removeAttribute(Const.SESSION_USER);
+
+			errInfo = "success";
+		} catch(Exception e){
+			e.printStackTrace();
+			errInfo = "error logout";
+		}
+		map.put("result",errInfo);
+		return map;
     }
 
 	private void setSession(Object key, Object value) {

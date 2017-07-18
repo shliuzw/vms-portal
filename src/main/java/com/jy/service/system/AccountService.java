@@ -17,6 +17,7 @@ public interface AccountService extends BaseService<Account>{
      * @return
      */
     public Account findFormatByLoginName(String loginName);
+    public Account findFormatByToken(String token);
     /**
      * 设置个人化皮肤
      * @param skin 皮肤属性
@@ -63,4 +64,6 @@ public interface AccountService extends BaseService<Account>{
      * @return
      */
 	public int preResetPwd(String opwd,String npwd,String qpwd);
+
+    public int sysResetToken(Account o);
 }

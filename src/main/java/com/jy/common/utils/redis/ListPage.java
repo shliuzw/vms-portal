@@ -6,7 +6,34 @@ import java.util.List;
 /**
  * Created by spring on 2017/6/8.
  */
-public class ListPage {
+public class ListPage<T> {
+
+    public List<T> pageList(Integer pageNo, Integer pageStart, List<T> list){
+        int pageSize = 10;
+        int totalCount = list.size();
+        int pageCount = 0;
+        int m = totalCount % pageSize;
+
+        List<T> subList = null;
+        if (m > 0) {
+            pageCount = totalCount / pageSize + 1;
+        } else {
+            pageCount = totalCount / pageSize;
+        }
+        if (m == 0) {
+           subList = list.subList((pageNo - 1) * pageSize, pageSize * (pageNo));
+            System.out.println(subList);
+        } else {
+            if (pageNo == pageCount) {
+                subList = list.subList((pageNo - 1) * pageSize, totalCount);
+                System.out.println(subList);
+            } else {
+                subList = list.subList((pageNo - 1) * pageSize, pageSize * (pageNo));
+                System.out.println(subList);
+            }
+        }
+        return subList;
+    }
     public static void main(String[] args) {
         ListPage page = new ListPage();
 //        page.pageList();

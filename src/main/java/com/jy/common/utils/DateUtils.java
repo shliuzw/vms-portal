@@ -197,7 +197,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
         Calendar canlendar = Calendar.getInstance(); 
         canlendar.add(Calendar.DATE, daysInt); // 日期减 如果不够减会将月变动
         Date date = canlendar.getTime();
-        SimpleDateFormat sdfd = new SimpleDateFormat((parsePatterns[3]));
+        SimpleDateFormat sdfd = new SimpleDateFormat((parsePatterns[0]));
         String dateStr = sdfd.format(date);     
         return dateStr;
     }
@@ -262,14 +262,16 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 	public static void main(String[] args) {
 		String reqCurrentTime = "20170526112100";
 
-		long req2 = DateUtils.addSeconds(DateUtils.parseDate2(reqCurrentTime, DATETIME_PATTERN),60).getTime();
-		long curTime = new Date().getTime();
-		if (req2 > curTime){
-			System.out.println("less 1 minutes ");
-		}else {
-			System.out.println("more 1 minutes ");
-		}
-
-
+//		long req2 = DateUtils.addSeconds(DateUtils.parseDate2(reqCurrentTime, DATETIME_PATTERN),60).getTime();
+//		long curTime = new Date().getTime();
+//		if (req2 > curTime){
+//			System.out.println("less 1 minutes ");
+//		}else {
+//			System.out.println("more 1 minutes ");
+//		}
+		String tmp = DateUtils.getDate(parsePatterns[0]);
+		System.out.println(tmp);
+		String tmp2 = DateUtils.getAfterDayDate("-1");
+		System.out.println(tmp2);
 	}
 }

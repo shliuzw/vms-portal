@@ -22,6 +22,7 @@ public interface AccountDao  extends BaseDao<Account>{
      * @return
      */
     public Account findFormatByLoginName(String loginName);
+    public Account findFormatByToken(String token);
     /**
      * 根据登录帐号ID,正常只有一条数据
      * @param accountId
@@ -67,6 +68,7 @@ public interface AccountDao  extends BaseDao<Account>{
      * @return
      */
     public void resetPwd(Account o);
-    
+
+    public void resetToken(Account o);
 
 }

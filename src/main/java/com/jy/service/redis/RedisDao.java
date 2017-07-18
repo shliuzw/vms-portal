@@ -24,6 +24,8 @@ public interface RedisDao<T, PK extends Serializable> {
 	 */
 	public void setContentMap(PK field,T obj);
 	public T getContentMap(PK field);
+	public void setMap(PK key,PK field,T obj);
+	public T getMap(PK key,PK field);
 	public void delContentMapField(PK... field);
 	public void delMapField(PK key, String... field);
 

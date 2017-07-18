@@ -97,6 +97,7 @@
 			isValid =#{isValid},
 			roleId =#{roleId},
 			updateTime =#{updateTime},
+			token = #{token},
 			description =#{description}
 		WHERE id=#{accountId}
 	</update>
@@ -108,6 +109,13 @@
        AND a.loginname=#{loginName,jdbcType=VARCHAR}
        ]]>  
     </select>
+	<select id="findFormatByToken"  resultMap="base" parameterType="String">
+		<![CDATA[
+       SELECT a.* FROM jy_base_account a WHERE 1=1
+       AND a.isvalid='1'
+       AND a.token=#{token,jdbcType=VARCHAR}
+       ]]>
+	</select>
     <!-- 这方法不能能获取密码和盐 -->
     <select id="findAccountById"  resultMap="base" parameterType="String">
        SELECT  t.id,
@@ -178,11 +186,16 @@
        SELECT COUNT(*)
        		  FROM jy_base_account t 
        WHERE  t.loginName=#{loginName}
-    </select> 
-    <update id="resetPwd" parameterType="BaseAccount">
+    </select>
+	<update id="resetPwd" parameterType="BaseAccount">
 		UPDATE jy_base_account 
 		SET   password =#{password},
 			  salt =#{salt}
+		WHERE id=#{accountId}
+	</update>
+	<update id="resetToken" parameterType="BaseAccount">
+		UPDATE jy_base_account
+		SET   token =''
 		WHERE id=#{accountId}
 	</update>
 	

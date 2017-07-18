@@ -33,7 +33,7 @@ public class SpringWebContextUtil implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		ServletContext context = sce.getServletContext();
 		wac = WebApplicationContextUtils.getWebApplicationContext(context);
-		System.setProperty("xml.base.path", context.getRealPath("/") + "/content/");
+		System.setProperty("xml.base.path", context.getRealPath("/")+ "/content/xml/");
 		Const.confMap = PropertyUtil.getPropertyMap(Const.CONF_PROP);
 	}
 	/**

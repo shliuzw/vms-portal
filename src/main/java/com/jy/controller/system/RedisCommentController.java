@@ -1,6 +1,7 @@
 package com.jy.controller.system;
 
 import com.jy.common.utils.base.Tools;
+import com.jy.common.utils.redis.ListPage;
 import com.jy.common.utils.webpage.PageData;
 import com.jy.controller.BaseController;
 import com.jy.entity.system.Comment;
@@ -60,6 +61,8 @@ public class RedisCommentController  extends BaseController<Comment> {
 		PageData pd = this.getPageData();
 		String errInfo = "";
 		String id = pd.getString("id");
+		long start = Long.parseLong(pd.getString("start"));
+		long end = Long.parseLong(pd.getString("end"));
 		try {
 			Integer.parseInt(id);
 		}catch (Exception ex){
@@ -68,7 +71,7 @@ public class RedisCommentController  extends BaseController<Comment> {
 		}
 		List<Comment> comments = null;
 		if (StringUtils.isBlank(errInfo)){
-			comments = (List<Comment>) commentRedisService.range(id, 0,-1);
+			comments = (List<Comment>) commentRedisService.range(id, start,end);
 			errInfo = "success";
 		}
 		map.put("result", errInfo);

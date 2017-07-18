@@ -100,9 +100,13 @@ public class SearchController extends BaseController<Object>{
 			Content cont = (Content) contentRedisService.getContentMap(contShort.getContId());
 			if(cont == null){ // 没有命中，从xml数据源获取成功，并添加到缓存
 				String contPath = FileUtil.idToName(Long.parseLong(contShort.getContId())) + "/" + contShort.getContId() + ".xml";
-				String absContPath = System.getProperty("xml.base.path")+contPath;
+				logger.debug("====cont xml base path : "+System.getProperty("xml.base.path") + ",contPath:"+contPath);
+				String absContPath = System.getProperty("xml.base.path")+"/"+contPath;
 				cont = this.parseContXml(absContPath);
-				if (cont == null) continue;
+				if (cont == null) {
+					logger.debug("====cont : "+absContPath+" not exists.===");
+					continue;
+				}
 				contentRedisService.setContentMap(contShort.getContId(), cont); // 增加到redis
 			}
 			contShort.setCategory(cont.getCategory());

@@ -32,6 +32,15 @@ public class AccountServiceImp extends BaseServiceImp<Account> implements Accoun
 		}
 		return a;
 	}
+	public Account findFormatByToken(String token){
+		Account a = null;
+		try {
+			a= accountDao.findFormatByToken(token);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return a;
+	}
 	
 	@Transactional
 	public void setSetting(String skin){
@@ -70,18 +79,18 @@ public class AccountServiceImp extends BaseServiceImp<Account> implements Accoun
 		String pwrsMD5=CipherUtil.generatePassword(pwrs);//第一次加密md5，
 		o.setSkin("skin-0");//默认皮肤
 		String salt=CipherUtil.createSalt();
-		o.setPassword(CipherUtil.createPwdEncrypt(o.getLoginName(),pwrsMD5,salt));
+		o.setPassword(CipherUtil.createPwdEncrypt(o.getLoginName(), pwrsMD5, salt));
 		o.setSalt(salt);
 		o.setCreateTime(new Date());
 		accountDao.insert(o);
 	}
 
-	//@Override
+	@Override
 	public List<ZNodes> getRoles() {
 		return accountDao.getRoles();
 	}
 
-	//@Override
+	@Override
 	public int sysResetPwd(Account o) {
 		int res=0;
 		String pwd=o.getPassword();
@@ -103,7 +112,7 @@ public class AccountServiceImp extends BaseServiceImp<Account> implements Accoun
 		return res;
 	}
 
-	//@Override
+	@Override
 	public int preResetPwd(String opwd,String npwd,String qpwd) {
 		int res=0;
 		String accountId= AccountShiroUtil.getRealCurrentUser().getAccountId();
@@ -131,6 +140,18 @@ public class AccountServiceImp extends BaseServiceImp<Account> implements Accoun
 		}
 		return res;
 	}
-
-
+	@Override
+	public int sysResetToken(Account o) {
+		int res=0;
+		String token=o.getToken();
+		o.setUpdateTime(new Date());
+		String accountId=o.getAccountId();
+		if(StringUtils.isNotBlank(token)&&StringUtils.isNotBlank(accountId)){
+			accountDao.resetToken(o);
+			res=1;
+		}else{
+			res=2;
+		}
+		return res;
+	}
 }

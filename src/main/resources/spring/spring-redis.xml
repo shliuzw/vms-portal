@@ -88,4 +88,7 @@
 	<bean id="contentRedisService" parent="redisService" class="com.jy.service.redis.impl.ContentRedisServiceImpl">
 		<property name="redisBusinessName" value="vportal::content::" />
 	</bean>
+	<bean id="accountRedisService" parent="redisService" class="com.jy.service.redis.impl.AccountRedisServiceImpl">
+		<property name="redisBusinessName" value="vportal::account::" />
+	</bean>
 </beans>

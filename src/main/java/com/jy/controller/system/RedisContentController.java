@@ -1,5 +1,6 @@
 package com.jy.controller.system;
 
+import com.jy.common.utils.DateUtils;
 import com.jy.common.utils.FileUtil;
 import com.jy.common.utils.webpage.PageData;
 import com.jy.controller.BaseController;
@@ -21,6 +22,7 @@ public class RedisContentController extends BaseController<Content> {
 	
 	@RequestMapping(value = "/putCont",produces="application/json;charset=UTF-8")
 	@ResponseBody
+	@Deprecated
 	public Map<String,Object> putCont(){
 		Map<String,Object> map = new HashMap<String,Object>();
 		PageData pd = this.getPageData();
@@ -53,11 +55,29 @@ public class RedisContentController extends BaseController<Content> {
 		Map<String,Object> map = new HashMap<String,Object>();
 		PageData pd = this.getPageData();
 		String id = pd.getString("id");
-		String errInfo = "success";
-		long idCounter = contentRedisService.incrementCont(id,1l);
+		String errInfo = "";
+		try {
+			String curDate = DateUtils.getDate(DateUtils.parsePatterns[0]);
+			String counterKey = "clickamount::"+curDate;
+			long idCounter = contentRedisService.incrementCont(id,1l);
+//			System.out.println("===counter " + id + " : " + contentRedisService.getIncrValue(id));
+			contentRedisService.setMap(counterKey, id, idCounter);
+//			Map<String,Long> keyMap = contentRedisService.getAllMap(counterKey);
+//			Set<String> keySet = keyMap.keySet();// map中的所有key在set中存放着，可以通过迭代set的方式 来获得key
+//			Iterator<String> iter = keySet.iterator();
+//			while(iter.hasNext()){
+//				String key = iter.next();
+//				Long value = keyMap.get(key);
+//				System.out.println("key2: "+key+"  value2: "+value);
+//			}
+			errInfo = "success";
+			map.put("counter",idCounter);
+		}catch (Exception e){
+			e.printStackTrace();
+			errInfo = "error counter.";
+		}
 		map.put("result", errInfo);
 		map.put("id",id);
-		map.put("counter",idCounter);
 		return map;
 	}
 

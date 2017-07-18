@@ -2,13 +2,14 @@ package com.jy.service.redis;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /** 
@@ -94,6 +95,12 @@ public abstract class RedisService<T, PK extends Serializable> implements RedisD
 			hashOperations.put((PK) (redisBusinessName +"detail"),field,obj);
 		}
 	}
+	public void setMap(PK key,PK field,T obj){
+		HashOperations<PK, PK, T> hashOperations = redisTemplate.opsForHash();
+		if (hashOperations != null){
+			hashOperations.put((PK) (redisBusinessName +key),field,obj);
+		}
+	}
 
 	/**
 	 * 通过field获取map
@@ -103,17 +110,25 @@ public abstract class RedisService<T, PK extends Serializable> implements RedisD
 	public T getContentMap(PK field){
 		return (T) redisTemplate.boundHashOps(redisBusinessName+"detail").get(field);
 	}
+	public T getMap(PK key,PK field){
+		return (T) redisTemplate.boundHashOps(redisBusinessName+key).get(field);
+	}
+
+	public Map<PK,T> getAllMap(PK key){
+		HashOperations<PK, PK, T> hashOperations = redisTemplate.opsForHash();
+		return hashOperations.entries((PK) (redisBusinessName+key));
+	}
 	/**
 	 * 删除map中的某个对象
 	 * @param field map中该对象的key
 	 */
 	public void delContentMapField(String... field){
-		BoundHashOperations<String, String, ?> boundHashOperations = redisTemplate.boundHashOps(redisBusinessName+"detail");
+		BoundHashOperations<String, String, ?> boundHashOperations = redisTemplate.boundHashOps(redisBusinessName + "detail");
 		boundHashOperations.delete(field);
 	}
 
 	public void delMapField(PK key, String... field){
-		BoundHashOperations<String, String, ?> boundHashOperations = redisTemplate.boundHashOps(key);
+		BoundHashOperations<String, String, ?> boundHashOperations = redisTemplate.boundHashOps(redisBusinessName+key);
 		boundHashOperations.delete(field);
 	}
 
@@ -125,6 +140,23 @@ public abstract class RedisService<T, PK extends Serializable> implements RedisD
 	 */
 	public long incrementCont(PK key, long step) {
 		return redisTemplate.opsForValue().increment(redisBusinessName+"counter::"+key, step);
+	}
+
+	public long getIncrValue(final String key) {
+		return (long) redisTemplate.execute(new RedisCallback<Long>() {
+			@Override
+			public Long doInRedis(RedisConnection connection) throws DataAccessException {
+				RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+				byte[] rowkey = serializer.serialize(redisBusinessName+"counter::"+key);
+				byte[] rowval = connection.get(rowkey);
+				try {
+					String val = serializer.deserialize(rowval);
+					return Long.parseLong(val);
+				} catch (Exception e) {
+					return 0L;
+				}
+			}
+		});
 	}
 
 	/**

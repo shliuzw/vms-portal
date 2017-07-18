@@ -17,7 +17,10 @@ import com.sun.tools.javac.jvm.Code;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
+import org.apache.shiro.session.mgt.DefaultSessionKey;
+import org.apache.shiro.session.mgt.SessionKey;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.web.session.mgt.WebSessionKey;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -52,6 +55,7 @@ public class VerifyCodeController extends BaseController<Object>{
         response.setDateHeader("Expires", 0);
         //生成短信码
         String verifyCode = VerifyCodeUtil.generateTextCode(VerifyCodeUtil.TYPE_NUM_ONLY, 4, null);
+
 		Subject currentUser = SecurityUtils.getSubject();
 		Session session = currentUser.getSession();
 

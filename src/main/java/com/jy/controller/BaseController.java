@@ -163,9 +163,9 @@ public class BaseController<T> {
 				Node imageType = eleImage.selectSingleNode("Type");
 				Node imagePath = eleImage.selectSingleNode("Path");
 				if ("1".equals(imageType.getText())){ //横图
-					content.setH16image(imagePath.getText());
+					content.setH16image("/content/image/"+imagePath.getText());
 				}else if ("2".equals(imageType.getText())){ //竖图
-					content.setV2image(imagePath.getText());
+					content.setV2image("/content/image/"+imagePath.getText());
 				}
 			}
 

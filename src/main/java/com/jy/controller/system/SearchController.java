@@ -56,6 +56,9 @@ public class SearchController extends BaseController<Object>{
 				errInfo = "type is 0, keyword is not null.";
 				map.put("result", errInfo);
 				return map;
+			}else {
+				url.append("&").append("type=").append(type);
+				url.append("&").append("keyword=").append(keyword);
 			}
 		}else if ("1".equals(type)){ // 类目过滤
 			url.append("&").append("type=").append(type);

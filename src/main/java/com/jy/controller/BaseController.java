@@ -3,6 +3,7 @@ package com.jy.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import com.jy.common.utils.DateUtils;
+import com.jy.common.utils.base.Const;
 import com.jy.common.utils.base.DES3;
 import com.jy.entity.system.Content;
 import com.jy.entity.system.PlayInfo;
@@ -163,9 +164,9 @@ public class BaseController<T> {
 				Node imageType = eleImage.selectSingleNode("Type");
 				Node imagePath = eleImage.selectSingleNode("Path");
 				if ("1".equals(imageType.getText())){ //横图
-					content.setH16image("/content/image/"+imagePath.getText());
+					content.setH16image(Const.confMap.get("image.server.baseurl")+"/content/image/"+imagePath.getText());
 				}else if ("2".equals(imageType.getText())){ //竖图
-					content.setV2image("/content/image/"+imagePath.getText());
+					content.setV2image(Const.confMap.get("image.server.baseurl")+"/content/image/"+imagePath.getText());
 				}
 			}
 

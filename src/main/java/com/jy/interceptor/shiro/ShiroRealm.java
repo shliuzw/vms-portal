@@ -19,6 +19,8 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.DefaultSessionKey;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.jy.common.utils.base.Const;
@@ -33,7 +35,7 @@ import java.util.Date;
  *
  */
 public class ShiroRealm extends AuthorizingRealm {
-
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
      * 账户类服务层注入
      */
@@ -55,11 +57,12 @@ public class ShiroRealm extends AuthorizingRealm {
         Subject currentUser = SecurityUtils.getSubject();
         Session session = currentUser.getSession();
         String sessionCode = (String) session.getAttribute(Const.SESSION_SECURITY_CODE);        //获取session中的验证码
-//
+        logger.debug("====login username:"+username+",code:"+code+",sessionCode:"+sessionCode+"===");
         // 短信码验证
         if (StringUtils.isNotEmpty(sessionCode) && sessionCode.equalsIgnoreCase(code)) {
             Account loginAccount = (Account)accountRedisService.getMap("username",username);
             Account loginAccountDb = accountService.findFormatByLoginName(username);//通过登录名 寻找用户
+            logger.debug("===loginAccount from redis is "+username+". loginAccountDb from MySQL is "+loginAccountDb+"===== ");
             if (loginAccount == null) {
                 if (loginAccountDb == null){ // 新用户：创建用户
                     loginAccount = new Account();
@@ -72,6 +75,7 @@ public class ShiroRealm extends AuthorizingRealm {
                         accountService.insertAccount(loginAccount);
                         accountRedisService.setMap("username",username,loginAccount);
                         accountRedisService.setMap("token", loginAccount.getToken(), loginAccount);
+                        logger.debug("====login auth new user param :" + loginAccount.getLoginName() + "," + code + "," + getName() + " ===");
                         authenticationInfo = new SimpleAuthenticationInfo(loginAccount.getLoginName(), code, getName());
                         // 登录验证，成功后将当前用户对象Account放到session
                         this.setSession(Const.SESSION_USER, loginAccount);
@@ -79,12 +83,14 @@ public class ShiroRealm extends AuthorizingRealm {
                         e.printStackTrace();
                     }
                 }else { // 老用户：更新token
+                    logger.debug("===loginAccount: " + username + " is exist in mysql.===");
                     loginAccountDb.setToken((String)session.getId());
                     loginAccountDb.setUpdateTime(new Date());
                     accountService.update(loginAccountDb);
                     try {
                         accountRedisService.setMap("username",username,loginAccount);
                         accountRedisService.setMap("token", loginAccountDb.getToken(),loginAccount);
+                        logger.debug("====login auth old user param :" + loginAccountDb.getLoginName() + "," + code + "," + getName() + " ===");
                         authenticationInfo = new SimpleAuthenticationInfo(loginAccountDb.getLoginName(), code, getName());
                         // 登录验证，成功后将当前用户对象Account放到session
                         this.setSession(Const.SESSION_USER, loginAccountDb);

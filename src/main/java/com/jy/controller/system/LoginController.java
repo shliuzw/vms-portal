@@ -137,6 +137,7 @@ public class LoginController extends BaseController<Object>{
 			String keyData[] = pd.getString("keyData").split(",jy,");
 			String username = keyData[0];
 			String code = keyData[1];
+			System.out.println("====username :"+username +",code : "+code);
 			if(null != keyData && keyData.length == 2) {
 				// shiro加入身份验证
 				UsernameSmsToken token = new UsernameSmsToken(username, code);
@@ -144,6 +145,8 @@ public class LoginController extends BaseController<Object>{
 				try {
 					if (!currentUser.isAuthenticated()) {
 						currentUser.login(token);
+					}else {
+						System.out.println("==========currentUser isAuthenticated.");
 					}
 					//记录登录日志
 					String accountId=AccountShiroUtil.getCurrentUser().getAccountId();
@@ -227,15 +230,15 @@ public class LoginController extends BaseController<Object>{
 				ret2.setUpdateTime(new Date());
 				accountService.sysResetToken(ret2);
 			}
-			Subject currentUser = SecurityUtils.getSubject();
-			currentUser.logout();
-			session = request.getSession(true);
-			session.removeAttribute(Const.SESSION_USER);
-
 			errInfo = "success";
 		} catch(Exception e){
 			e.printStackTrace();
 			errInfo = "error logout";
+		}finally {
+			Subject currentUser = SecurityUtils.getSubject();
+			currentUser.logout();
+			session = request.getSession(true);
+			session.removeAttribute(Const.SESSION_USER);
 		}
 		map.put("result",errInfo);
 		return map;

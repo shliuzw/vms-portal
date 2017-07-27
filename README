@@ -3,6 +3,9 @@ Hello vms-plat
 admin/password
 sa/password
 
+APP第一次访问服务时，服务器端返回的头信息，在以后的请求中都需要携带。
+当APP执行logout操作时，删除http的头信息。再一次请求服务，更新http的头信息，在以后的请求中都需要携带头信息。
+
 APP怎么不用密码登录:
     web使用的是cookie（由浏览器自动维护的），APP怎么登陆呢？
     由于APP本地不保存密码，那么也参考web，使用类似cookie的东西，我们叫他token吧，那问题就解决了，APP本地保存token.
@@ -41,4 +44,3 @@ APP怎么不用密码登录:
     这里给出另外一种实现方式：
     实现自己的SessionDao，将session保存在数据库，这样子的好处是，session不会大量堆积在内存中，就不需要考虑session的过期时间了，
     对于APP这种需要长期保存session的情况来说，就可以无限期的保存session了，也就不用APP在每次session过期之后重新发送登录请求了。实现方式如下：
-

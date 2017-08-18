@@ -86,9 +86,9 @@ public class VerifyCodeController extends BaseController<Object>{
 		HashMap<String, Object> result = null;
 		CCPRestSDK restAPI = CCPRestSDK.getInstance();
 		restAPI.init("app.cloopen.com", "8883");// 初始化服务器地址和端口，格式如下，服务器地址不需要写https://
-		restAPI.setAccount("8a216da85582647801559af1b26d15ec", "a720955b1e7a43c193f5acc2e06e372e");// 初始化主帐号和主帐号TOKEN
-		restAPI.setAppId("8a216da85582647801559af1b2eb15f2");// 初始化应用ID
-		result = restAPI.sendTemplateSMS(mobileNo,"1" ,new String[]{code,"5"});
+		restAPI.setAccount("8aaf07085d106c7f015d4e3f0dbf16dd", "2d9b471d2a7e453d8cc9f28d6b076cb4");// 初始化主帐号和主帐号TOKEN
+		restAPI.setAppId("8aaf07085d106c7f015d4e3f0f1f16e3");// 初始化应用ID
+		result = restAPI.sendTemplateSMS(mobileNo,"198914" ,new String[]{code,"5"});
 		System.out.println("SDKTestSendTemplateSMS result=" + result);
 
 		if("000000".equals(result.get("statusCode"))){
@@ -101,5 +101,4 @@ public class VerifyCodeController extends BaseController<Object>{
 		}
 		return flag;
 	}
-	
 }
